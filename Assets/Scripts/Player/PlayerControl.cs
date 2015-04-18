@@ -10,6 +10,7 @@ public sealed class PlayerControl : MonoBehaviour
 	public float walkSpeed = 10f;
 	public float jumpHeight = 5f;
 
+	public float fartMaxChargeTime = 3f;
 	public Vector2 fartDistanceRange;
 	public Vector2 fartSpeedRange;
 
@@ -21,9 +22,11 @@ public sealed class PlayerControl : MonoBehaviour
 	private bool jump = false;
 
 	private bool fart = false;
-	private bool previousFart = false;
-	private bool fartStart = false;
 	private bool farted = false;
+
+	private bool fartCharging = false;
+	private bool previousFartCharging = false;
+	private float fartChargeTime = 0f;
 
 	private float fartDistance = 0f;
 	private float fartSpeed = 0f;
@@ -35,7 +38,6 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private Transform body;
 	private CharacterController2D controller;
-	private SpriteRenderer spriteRenderer;
 	#endregion
 
 	#region Public Properties
@@ -78,7 +80,6 @@ public sealed class PlayerControl : MonoBehaviour
 
 		body = transform.FindChild("Body");
 		controller = GetComponent<CharacterController2D>();
-		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 	}
 
 	private void Update()
@@ -95,7 +96,7 @@ public sealed class PlayerControl : MonoBehaviour
 	private void OnTriggerEnter2D(Collider2D other)
 	{
 		if (farted && initialFartTime - fartTime > 0.05f && CollisionLayers.ContainsLayer(other.gameObject))
-			StopFart();
+			StopFart(IsGrounded);
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
@@ -110,12 +111,22 @@ public sealed class PlayerControl : MonoBehaviour
 		horizontalMovement = Input.GetAxis("Horizontal");
 		jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
 
-		previousFart = fart;
-		fart = fart || Input.GetButtonDown("Fart") && IsGrounded;
-		fartStart = fart && !previousFart;
+		previousFartCharging = fartCharging;
+		fartCharging = Input.GetButton("Fart") && IsGrounded;
 
-		if (fartStart)
-			fartDirection = MouseDirection;
+		if (fartCharging)
+		{
+			fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
+		}
+		else if (previousFartCharging && IsGrounded)
+		{
+			Fart(fartChargeTime);
+			fartChargeTime = 0f;
+		}
+		else
+		{
+			fartChargeTime = 0f;
+		}
 	}
 
 	private void GetMovement()
@@ -132,20 +143,6 @@ public sealed class PlayerControl : MonoBehaviour
 		{
 			Jump(jumpHeight);
 			jump = false;
-		}
-
-		if (farted && IsGrounded)
-		{
-			StopFart();
-		}
-
-		if (fartStart && IsGrounded)
-		{
-			farted = true;
-			fartDistance = fartDistanceRange.x;
-			fartSpeed = fartSpeedRange.x;
-			initialFartTime = fartDistance / fartSpeed;
-			fartTime = initialFartTime;
 		}
 	}
 
@@ -191,16 +188,32 @@ public sealed class PlayerControl : MonoBehaviour
 		}
 	}
 
-	private void StopFart()
+	private void Fart(float chargeTime)
 	{
-		fart = farted = previousFart = fartStart = false;
-		velocity = Vector3.zero;
+		fartDistance = Extensions.ConvertRange(chargeTime, 0f, fartMaxChargeTime, fartDistanceRange.x, fartDistanceRange.y);
+		fartSpeed = Extensions.ConvertRange(chargeTime, 0f, fartMaxChargeTime, fartSpeedRange.x, fartSpeedRange.y);
+		initialFartTime = fartDistance / fartSpeed;
+		fartTime = initialFartTime;
+		fartDirection = MouseDirection;
+		fart = farted = true;
+	}
+
+	private void StopFart(bool killXVelocity = true)
+	{
+		fart = farted = false;
+
+		if (killXVelocity)
+			velocity.x = 0f;
+
+		velocity.y = 0f;
 		ResetOrientation();
 	}
 
 	private void ResetOrientation()
 	{
-		body.localScale = new Vector3(body.localScale.x, 1f, body.localScale.z);
+		float zRotation = body.rotation.eulerAngles.z;
+		bool flipX = zRotation > 90f && zRotation < 270f;
+		body.localScale = new Vector3(flipX ? -1f : 1f, 1f, 1f);
 		body.rotation = Quaternion.identity;
 	}
 	#endregion
