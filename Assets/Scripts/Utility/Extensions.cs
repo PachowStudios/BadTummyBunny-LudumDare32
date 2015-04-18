@@ -19,6 +19,13 @@ public static class Extensions
 		return Quaternion.Euler(new Vector3(0f, 0f, Quaternion.AngleAxis(angle, Vector3.forward).eulerAngles.z));
 	}
 
+	public static Vector3 DirectionToRotation2D(this Vector3 parent)
+	{
+		float angle = Mathf.Atan2(parent.y, parent.x) * Mathf.Rad2Deg;
+
+		return Quaternion.AngleAxis(angle, Vector3.forward).eulerAngles;
+	}
+
 	public static float DistanceFrom(this Vector3 parent, Vector3 target)
 	{
 		return Mathf.Sqrt(Mathf.Pow(parent.x - target.x, 2) + Mathf.Pow(parent.y - target.y, 2));
@@ -29,6 +36,19 @@ public static class Extensions
 	public static void Flip(this Transform parent)
 	{
 		parent.localScale = new Vector3(-parent.localScale.x, parent.localScale.y, parent.localScale.z);
+	}
+
+	public static void CorrectScaleForRotation(this Transform parent, Vector3 target, bool correctY = false)
+	{
+		bool flipY = target.z > 90f && target.z < 270f;
+
+		target.y = correctY && flipY ? 180f : 0f;
+
+		Vector3 newScale = parent.localScale;
+		newScale.x = 1f;
+		newScale.y = flipY ? -1f : 1f;
+		parent.localScale = newScale;
+		parent.rotation = Quaternion.Euler(target);
 	}
 	#endregion
 

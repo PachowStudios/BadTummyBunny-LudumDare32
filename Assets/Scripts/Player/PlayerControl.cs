@@ -118,7 +118,10 @@ public sealed class PlayerControl : MonoBehaviour
 		}
 
 		if (farted && IsGrounded)
+		{
 			farted = false;
+			ResetOrientation();
+		}
 
 		if (fartStart && IsGrounded)
 		{
@@ -139,7 +142,12 @@ public sealed class PlayerControl : MonoBehaviour
 			if (fartTime <= 0f)
 				fart = false;
 		}
-		else if (!farted)
+
+		if (farted)
+		{
+			transform.CorrectScaleForRotation(velocity.DirectionToRotation2D());
+		}
+		else
 		{
 			float smoothedMovement = IsGrounded ? groundDamping : airDamping;
 
@@ -164,6 +172,12 @@ public sealed class PlayerControl : MonoBehaviour
 		{
 			velocity.y = Mathf.Sqrt(2f * height * -gravity);
 		}
+	}
+
+	private void ResetOrientation()
+	{
+		transform.localScale = new Vector3(transform.localScale.x, 1f, transform.localScale.z);
+		transform.rotation = Quaternion.identity;
 	}
 	#endregion
 }
