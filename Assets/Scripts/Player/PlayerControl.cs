@@ -6,14 +6,19 @@ public sealed class PlayerControl : MonoBehaviour
 	#region Fields
 	private static PlayerControl instance;
 
-	public float speed = 30f;
-	public float maxSpeed = 5f;
-	public float jumpForce = 5f;
-	public float groundCheckDistance = 0.1f;
-	public LayerMask collisionLayers;
+	public float gravity = -60f;
+	public float walkSpeed = 10f;
+	public float jumpHeight = 5f;
+	public float groundDamping = 10f;
+	public float airDamping = 5f;
 
-	private float horizontal = 0f;
+	private float horizontalMovement = 0f;
 	private bool jump = false;
+
+	private Vector3 velocity;
+
+	private CharacterController2D controller;
+	private SpriteRenderer spriteRenderer;
 	#endregion
 
 	#region Public Properties
@@ -21,49 +26,87 @@ public sealed class PlayerControl : MonoBehaviour
 	{ get { return instance; } }
 
 	public bool IsGrounded
-	{
-		get
-		{
-			RaycastHit2D groundCheck = Physics2D.Linecast(BottomPosition, BottomPosition - new Vector2(0f, groundCheckDistance), collisionLayers);
-			return groundCheck.collider != null;
-		}
-	}
+	{ get { return controller.isGrounded; } }
 
-	public Vector2 BottomPosition
-	{
-		get
-		{
-			return new Vector2(transform.position.x,
-							   transform.position.y - (transform.localScale.x / 2f));
-		}
-	}
+	public Vector3 Velocity
+	{ get { return velocity; } }
+	#endregion
+
+	#region Internal Properties
+	private bool Right
+	{ get { return horizontalMovement > 0f; } }
+
+	private bool Left
+	{ get { return horizontalMovement < 0f; } }
+
+	private bool FacingRight
+	{ get { return transform.localScale.x > 0f; } }
 	#endregion
 
 	#region MonoBehaviour
 	private void Awake()
 	{
 		instance = this;
+
+		controller = GetComponent<CharacterController2D>();
+		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 	}
 
 	private void Update()
 	{
-		horizontal = Input.GetAxis("Horizontal");
-		jump = jump || Input.GetButtonDown("Jump");
+		GetInput();
 	}
 
-	private void FixedUpdate()
+	private void LateUpdate()
 	{
-		if (horizontal * rigidbody2D.velocity.x < maxSpeed)
-			rigidbody2D.AddForce(Vector2.right * horizontal * speed);
+		GetMovement();
+		ApplyMovement();
+	}
+	#endregion
 
-		if (Mathf.Abs(rigidbody2D.velocity.x) >= maxSpeed)
-			rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x.Sign() * maxSpeed,
-											   rigidbody2D.velocity.y);
+	#region Internal Update Methods
+	private void GetInput()
+	{
+		horizontalMovement = Input.GetAxis("Horizontal");
+		jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
+	}
 
-		if (IsGrounded && jump)
+	private void GetMovement()
+	{
+		if (Right && !FacingRight)
+			transform.Flip();
+		else if (Left && FacingRight)
+			transform.Flip();
+
+		if (jump && IsGrounded)
 		{
-			rigidbody2D.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+			Jump(jumpHeight);
 			jump = false;
+		}
+	}
+
+	private void ApplyMovement()
+	{
+		float smoothedMovement = IsGrounded ? groundDamping : airDamping;
+
+		velocity.x = Mathf.Lerp(velocity.x,
+								horizontalMovement * walkSpeed,
+								Time.deltaTime * smoothedMovement);
+		velocity.y += gravity * Time.deltaTime;
+		controller.move(velocity * Time.deltaTime);
+		velocity = controller.velocity;
+
+		if (IsGrounded)
+			velocity.y = 0f;
+	}
+	#endregion
+
+	#region Internal Helper Methods
+	private void Jump(float height)
+	{
+		if (height > 0f)
+		{
+			velocity.y = Mathf.Sqrt(2f * height * -gravity);
 		}
 	}
 	#endregion

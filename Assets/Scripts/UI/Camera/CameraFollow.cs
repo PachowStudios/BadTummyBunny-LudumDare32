@@ -9,7 +9,6 @@ public sealed class CameraFollow : MonoBehaviour
 	public float defaultYOffset = 10f;
 	public float smoothing = 1f;
 	public Transform followTarget;
-	public bool stayAboveGroundLevel = true;
 
 	private float currentYOffset;
 	private bool usePlayerY = false;
@@ -40,7 +39,6 @@ public sealed class CameraFollow : MonoBehaviour
 
 	private void Update()
 	{
-		/*
 		if (Time.deltaTime > 0f)
 		{
 			previousPosition = transform.position;
@@ -67,7 +65,7 @@ public sealed class CameraFollow : MonoBehaviour
 			}
 
 			transform.localPosition = Extensions.SuperSmoothLerp(transform.localPosition, previousTargetPosition, targetPosition, Time.deltaTime, smoothing);
-		}*/
+		}
 	}
 	#endregion
 

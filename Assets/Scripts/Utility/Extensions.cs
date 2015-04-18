@@ -10,6 +10,13 @@ public static class Extensions
 	}
 	#endregion
 
+	#region Transform
+	public static void Flip(this Transform parent)
+	{
+		parent.localScale = new Vector3(-parent.localScale.x, parent.localScale.y, parent.localScale.z);
+	}
+	#endregion
+
 	#region Utility
 	public static int ClampWrap(int value, int min, int max)
 	{
