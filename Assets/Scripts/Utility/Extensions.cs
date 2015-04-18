@@ -10,6 +10,21 @@ public static class Extensions
 	}
 	#endregion
 
+	#region Vector3
+	public static Quaternion LookAt2D(this Vector3 parent, Vector3 target)
+	{
+		Vector3 targetPosition = target - parent;
+		float angle = Mathf.Atan2(targetPosition.y, targetPosition.x) * Mathf.Rad2Deg;
+
+		return Quaternion.Euler(new Vector3(0f, 0f, Quaternion.AngleAxis(angle, Vector3.forward).eulerAngles.z));
+	}
+
+	public static float DistanceFrom(this Vector3 parent, Vector3 target)
+	{
+		return Mathf.Sqrt(Mathf.Pow(parent.x - target.x, 2) + Mathf.Pow(parent.y - target.y, 2));
+	}
+	#endregion
+
 	#region Transform
 	public static void Flip(this Transform parent)
 	{

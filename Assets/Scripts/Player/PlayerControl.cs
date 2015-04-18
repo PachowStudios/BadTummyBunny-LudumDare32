@@ -9,11 +9,26 @@ public sealed class PlayerControl : MonoBehaviour
 	public float gravity = -60f;
 	public float walkSpeed = 10f;
 	public float jumpHeight = 5f;
+
+	public Vector2 fartDistanceRange;
+	public Vector2 fartSpeedRange;
+
 	public float groundDamping = 10f;
 	public float airDamping = 5f;
+	public float fartDamping = 10f;
 
 	private float horizontalMovement = 0f;
 	private bool jump = false;
+
+	private bool fart = false;
+	private bool previousFart = false;
+	private bool fartStart = false;
+	private bool farted = false;
+
+	private float fartDistance = 0f;
+	private float fartSpeed = 0f;
+	private float fartTime = 0f;
+	private Vector2 fartDirection = Vector2.zero;
 
 	private Vector3 velocity;
 
@@ -41,6 +56,14 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private bool FacingRight
 	{ get { return transform.localScale.x > 0f; } }
+
+	private Vector3 MouseDirection
+	{
+		get
+		{
+			return transform.position.LookAt2D(Camera.main.ScreenToWorldPoint(Input.mousePosition)) * Vector3.right;
+		}
+	}
 	#endregion
 
 	#region MonoBehaviour
@@ -69,29 +92,62 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		horizontalMovement = Input.GetAxis("Horizontal");
 		jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
+
+		previousFart = fart;
+		fart = fart || Input.GetButtonDown("Fart") && IsGrounded;
+		fartStart = fart && !previousFart;
+
+		if (fartStart)
+			fartDirection = MouseDirection;
 	}
 
 	private void GetMovement()
 	{
-		if (Right && !FacingRight)
-			transform.Flip();
-		else if (Left && FacingRight)
-			transform.Flip();
+		if (!farted)
+		{
+			if (Right && !FacingRight)
+				transform.Flip();
+			else if (Left && FacingRight)
+				transform.Flip();
+		}
 
 		if (jump && IsGrounded)
 		{
 			Jump(jumpHeight);
 			jump = false;
 		}
+
+		if (farted && IsGrounded)
+			farted = false;
+
+		if (fartStart && IsGrounded)
+		{
+			farted = true;
+			fartDistance = fartDistanceRange.x;
+			fartSpeed = fartSpeedRange.x;
+			fartTime = fartDistance / fartSpeed;
+		}
 	}
 
 	private void ApplyMovement()
 	{
-		float smoothedMovement = IsGrounded ? groundDamping : airDamping;
+		if (fart)
+		{
+			velocity = fartDirection * fartSpeed;
+			fartTime -= Time.deltaTime;
 
-		velocity.x = Mathf.Lerp(velocity.x,
-								horizontalMovement * walkSpeed,
-								Time.deltaTime * smoothedMovement);
+			if (fartTime <= 0f)
+				fart = false;
+		}
+		else if (!farted)
+		{
+			float smoothedMovement = IsGrounded ? groundDamping : airDamping;
+
+			velocity.x = Mathf.Lerp(velocity.x,
+									horizontalMovement * walkSpeed,
+									Time.deltaTime * smoothedMovement);
+		}
+
 		velocity.y += gravity * Time.deltaTime;
 		controller.move(velocity * Time.deltaTime);
 		velocity = controller.velocity;
