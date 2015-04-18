@@ -44,7 +44,8 @@ public class AutoTile : MonoBehaviour {
 	}
 	
 	public void OnDestroy() {
-		collider2D.enabled=false;
+		if (collider2D != null)
+			collider2D.enabled=false;
 		UpdateTile();
 	}
 	
@@ -198,15 +199,25 @@ public class AutoTile : MonoBehaviour {
 				item.enabled=false;
 			}
 			switch (cornerType) {
-			case CornerDirection.ForwardSlash:  colliders[2].enabled=true; break;
-			case CornerDirection.BackwardSlash: colliders[1].enabled=true; break;
-			case CornerDirection.None:          colliders[0].enabled=true; break;
+			case CornerDirection.ForwardSlash:  
+				if (colliders.Length >= 3)
+					colliders[2].enabled=true; 
+				break;
+			case CornerDirection.BackwardSlash: 
+				if (colliders.Length >= 2)
+					colliders[1].enabled=true;
+				break;
+			case CornerDirection.None:
+				if (colliders.Length >= 1)
+					colliders[0].enabled=true;
+				break;
 			}
 		} else {
 			foreach (var item in colliders) {
 				item.enabled=false;
 			}
-			colliders[0].enabled=true;
+			if (colliders.Length > 0)
+				colliders[0].enabled=true;
 		}
 	}
 	
