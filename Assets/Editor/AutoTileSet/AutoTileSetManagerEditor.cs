@@ -20,9 +20,10 @@ public class AutoTileSetManagerEditor : Editor {
 		Ray ray=HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
 		pointHit =Physics2D.OverlapPoint (ray.origin);
 		radiusHit=Physics2D.OverlapCircle(ray.origin, 0.333f);
-		if (!pointHit && radiusHit) {
+
+		if (pointHit == null && radiusHit != null) {
 			AutoTile currentTile=radiusHit.gameObject.GetComponent<AutoTile>();
-			if (currentTile.autoTileMode==AutoTileMode.Slope) {
+			if (currentTile != null && currentTile.autoTileMode==AutoTileMode.Slope) {
 				pointHit=radiusHit;
 			}
 		}
@@ -99,6 +100,7 @@ public class AutoTileSetManagerEditor : Editor {
 				newObject.transform.position=new Vector3(newObject.transform.position.x, newObject.transform.position.y, 0);
 				newObject.transform.parent=((Component)serializedObject.targetObject).gameObject.transform;
 				newObject.name=newObject.name.Replace("(Clone)", "");
+				newObject.SendMessage("UpdateTile", SendMessageOptions.DontRequireReceiver);
 				Undo.RegisterCreatedObjectUndo(newObject, "Created new tile");
 			}
 		}

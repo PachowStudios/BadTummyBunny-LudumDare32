@@ -40,6 +40,11 @@ public class AutoTile : MonoBehaviour {
 	}
 	
 	public void Start(){
+		//UpdateTile();
+	}
+
+	public void Initialize()
+	{
 		UpdateTile();
 	}
 	
