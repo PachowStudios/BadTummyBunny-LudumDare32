@@ -27,11 +27,13 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private float fartDistance = 0f;
 	private float fartSpeed = 0f;
+	private float initialFartTime = 0f;
 	private float fartTime = 0f;
 	private Vector2 fartDirection = Vector2.zero;
 
 	private Vector3 velocity;
 
+	private Transform body;
 	private CharacterController2D controller;
 	private SpriteRenderer spriteRenderer;
 	#endregion
@@ -55,7 +57,10 @@ public sealed class PlayerControl : MonoBehaviour
 	{ get { return horizontalMovement < 0f; } }
 
 	private bool FacingRight
-	{ get { return transform.localScale.x > 0f; } }
+	{ get { return body.localScale.x > 0f; } }
+
+	private LayerMask CollisionLayers
+	{ get { return controller.platformMask; } }
 
 	private Vector3 MouseDirection
 	{
@@ -71,6 +76,7 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		instance = this;
 
+		body = transform.FindChild("Body");
 		controller = GetComponent<CharacterController2D>();
 		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 	}
@@ -84,6 +90,17 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		GetMovement();
 		ApplyMovement();
+	}
+
+	private void OnTriggerEnter2D(Collider2D other)
+	{
+		if (farted && initialFartTime - fartTime > 0.05f && CollisionLayers.ContainsLayer(other.gameObject))
+			StopFart();
+	}
+
+	private void OnTriggerStay2D(Collider2D other)
+	{
+		OnTriggerEnter2D(other);
 	}
 	#endregion
 
@@ -106,9 +123,9 @@ public sealed class PlayerControl : MonoBehaviour
 		if (!farted)
 		{
 			if (Right && !FacingRight)
-				transform.Flip();
+				body.Flip();
 			else if (Left && FacingRight)
-				transform.Flip();
+				body.Flip();
 		}
 
 		if (jump && IsGrounded)
@@ -119,8 +136,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 		if (farted && IsGrounded)
 		{
-			farted = false;
-			ResetOrientation();
+			StopFart();
 		}
 
 		if (fartStart && IsGrounded)
@@ -128,7 +144,8 @@ public sealed class PlayerControl : MonoBehaviour
 			farted = true;
 			fartDistance = fartDistanceRange.x;
 			fartSpeed = fartSpeedRange.x;
-			fartTime = fartDistance / fartSpeed;
+			initialFartTime = fartDistance / fartSpeed;
+			fartTime = initialFartTime;
 		}
 	}
 
@@ -145,7 +162,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 		if (farted)
 		{
-			transform.CorrectScaleForRotation(velocity.DirectionToRotation2D());
+			body.CorrectScaleForRotation(velocity.DirectionToRotation2D());
 		}
 		else
 		{
@@ -174,10 +191,17 @@ public sealed class PlayerControl : MonoBehaviour
 		}
 	}
 
+	private void StopFart()
+	{
+		fart = farted = previousFart = fartStart = false;
+		velocity = Vector3.zero;
+		ResetOrientation();
+	}
+
 	private void ResetOrientation()
 	{
-		transform.localScale = new Vector3(transform.localScale.x, 1f, transform.localScale.z);
-		transform.rotation = Quaternion.identity;
+		body.localScale = new Vector3(body.localScale.x, 1f, body.localScale.z);
+		body.rotation = Quaternion.identity;
 	}
 	#endregion
 }

@@ -52,6 +52,18 @@ public static class Extensions
 	}
 	#endregion
 
+	#region LayerMask
+	public static bool ContainsLayer(this LayerMask parent, int layer)
+	{
+		return ((parent.value & (1 << layer)) > 0);
+	}
+
+	public static bool ContainsLayer(this LayerMask parent, GameObject obj)
+	{
+		return parent.ContainsLayer(obj.layer);
+	}
+	#endregion
+
 	#region Utility
 	public static int ClampWrap(int value, int min, int max)
 	{
