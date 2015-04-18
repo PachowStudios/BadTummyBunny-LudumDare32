@@ -18,6 +18,11 @@ public sealed class PlayerControl : MonoBehaviour
 	public float airDamping = 5f;
 	public float fartDamping = 10f;
 
+	[SerializeField]
+	private Transform body;
+	[SerializeField]
+	private ParticleSystem fartParticles;
+
 	private float horizontalMovement = 0f;
 	private bool jump = false;
 
@@ -36,7 +41,6 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private Vector3 velocity;
 
-	private Transform body;
 	private CharacterController2D controller;
 	#endregion
 
@@ -78,7 +82,6 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		instance = this;
 
-		body = transform.FindChild("Body");
 		controller = GetComponent<CharacterController2D>();
 	}
 
@@ -195,17 +198,16 @@ public sealed class PlayerControl : MonoBehaviour
 		initialFartTime = fartDistance / fartSpeed;
 		fartTime = initialFartTime;
 		fartDirection = MouseDirection;
+		StartCoroutine(StartFartParticles());
 		fart = farted = true;
 	}
 
 	private void StopFart(bool killXVelocity = true)
 	{
 		fart = farted = false;
-
-		if (killXVelocity)
-			velocity.x = 0f;
-
+		velocity.x = killXVelocity ? 0f : velocity.x;
 		velocity.y = 0f;
+		fartParticles.Stop();
 		ResetOrientation();
 	}
 
@@ -215,6 +217,13 @@ public sealed class PlayerControl : MonoBehaviour
 		bool flipX = zRotation > 90f && zRotation < 270f;
 		body.localScale = new Vector3(flipX ? -1f : 1f, 1f, 1f);
 		body.rotation = Quaternion.identity;
+	}
+
+	private IEnumerator StartFartParticles()
+	{
+		yield return new WaitForFixedUpdate();
+
+		fartParticles.Play();
 	}
 	#endregion
 }
