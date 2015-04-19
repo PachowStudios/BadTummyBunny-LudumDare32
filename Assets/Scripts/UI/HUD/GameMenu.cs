@@ -24,8 +24,10 @@ public class GameMenu : MonoBehaviour
 	#endregion
 
 	#region Public Methods
-	public void ShowGameOver()
+	public IEnumerator ShowGameOver(float delay)
 	{
+		yield return new WaitForSeconds(delay);
+
 		canvasGroup.alpha = 1f;
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;

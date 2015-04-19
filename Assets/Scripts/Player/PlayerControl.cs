@@ -131,6 +131,17 @@ public sealed class PlayerControl : MonoBehaviour
 			PlayerHealth.Instance.Health += (PlayerHealth.Instance.carrotHealthRechargePercent * PlayerHealth.Instance.maxHealth);
 			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotFartRechargePercent), fartMaxAvailableTime);
 		}
+		else if (other.tag == "Flagpole")
+		{
+			var flagpole = other.GetComponent<Flagpole>();
+
+			if (!flagpole.Activated)
+			{
+				flagpole.Activate();
+				DisableInput();
+				StartCoroutine(GameMenu.Instance.ShowGameOver(1.2f));
+			}
+		}
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
@@ -279,7 +290,7 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		horizontalMovement = 0f;
 		jump = false;
-		StopFart();
+		StopFart(true);
 	}
 	#endregion
 
