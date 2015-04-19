@@ -16,6 +16,7 @@ public sealed class PlayerControl : MonoBehaviour
 	[Range(0f, 1f)]
 	public float carrotFartRechargePercent = 0.25f;
 	public float fartMaxChargeTime = 3f;
+	public float fartMinDischarge = 0.5f;
 	public Vector2 fartDistanceRange;
 	public Vector2 fartSpeedRange;
 
@@ -36,6 +37,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private bool fart = false;
 	private bool farted = false;
+	private bool canFart = true;
 
 	private bool fartCharging = false;
 	private bool previousFartCharging = false;
@@ -159,14 +161,19 @@ public sealed class PlayerControl : MonoBehaviour
 			jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
 
 			previousFartCharging = fartCharging;
-			fartCharging = Input.GetButton("Fart") && !Farting;
+			fartCharging = Input.GetButton("Fart") && canFart;
 
 			if (fartCharging && fartAvailableTime > 0f)
 			{
 				fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
 
 				if (fartChargeTime < fartMaxChargeTime)
+				{
 					fartAvailableTime = Mathf.Max(fartAvailableTime - Time.deltaTime, 0f);
+
+					if (!previousFartCharging)
+						fartAvailableTime = Mathf.Max(fartAvailableTime - fartMinDischarge, 0f);
+				}
 			}
 			else if (previousFartCharging)
 			{
@@ -197,6 +204,9 @@ public sealed class PlayerControl : MonoBehaviour
 			else if (Left && FacingRight)
 				body.Flip();
 		}
+
+		if (!canFart && !Farting && IsGrounded)
+			canFart = true;
 
 		if (jump && IsGrounded)
 		{
@@ -260,6 +270,7 @@ public sealed class PlayerControl : MonoBehaviour
 		fartDirection = MouseDirection;
 		StartCoroutine(StartFartParticles());
 		fart = farted = true;
+		canFart = false;
 	}
 
 	private void StopFart(bool killXVelocity = true)

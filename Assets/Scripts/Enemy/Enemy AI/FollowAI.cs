@@ -6,12 +6,15 @@ public sealed class FollowAI : Enemy
 	#region Fields
 	public Vector2 followSpeedRange = new Vector2(2.5f, 3.5f);
 	public float followRange = 5f;
-	public float attackRange = 0.5f;
+	public float followBuffer = 0.75f;
+	public float attackRange = 1f;
+	public float attackJumpHeight = 0.5f;
 	public float cooldownTime = 1f;
 
 	private float defaultMoveSpeed;
 	private float followSpeed;
 
+	private bool attacking = false;
 	private float cooldownTimer = 0f;
 	#endregion
 
@@ -34,7 +37,9 @@ public sealed class FollowAI : Enemy
 
 	protected override void ApplyAnimation()
 	{
-		//animator.SetBool("Walking", horizontalMovement != 0f);
+		animator.SetBool("Walking", horizontalMovement != 0f);
+		animator.SetBool("Grounded", IsGrounded);
+		animator.SetBool("Falling", velocity.y < 0f);
 	}
 	#endregion
 
@@ -42,6 +47,9 @@ public sealed class FollowAI : Enemy
 	private void Walk()
 	{
 		moveSpeed = defaultMoveSpeed;
+
+		if (attacking && velocity.y < 0f && IsGrounded)
+			attacking = false;
 
 		if (horizontalMovement == 0f)
 			horizontalMovement = Extensions.RandomSign();
@@ -55,18 +63,18 @@ public sealed class FollowAI : Enemy
 		{
 			if (RelativePlayerHeight < 0.5f && IsPlayerVisible(followRange))
 			{
-				FollowPlayer(attackRange);
+				FollowPlayer(followBuffer);
 				moveSpeed = followSpeed;
 			}
 			else
 			{
 				CheckAtWall(true);
-				CheckAtLedge(true);
+				CheckAtLedge(!attacking);
 			}
 		}
 		else if (PlayerControl.Instance.IsGrounded)
 		{
-			CheckAtLedge(true);
+			CheckAtLedge(!attacking);
 		}
 		else
 		{
@@ -112,8 +120,9 @@ public sealed class FollowAI : Enemy
 
 	private void Attack()
 	{
-		//animator.SetTrigger("Attack");
-		PlayerHealth.Instance.TakeDamage(this);
+		attacking = true;
+		horizontalMovement = PlayerIsOnRight ? 1f : -1f;
+		Jump(attackJumpHeight);
 	}
 	#endregion
 }

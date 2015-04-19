@@ -144,7 +144,10 @@ public abstract class Enemy : MonoBehaviour
 	protected virtual void Jump(float height)
 	{
 		if (height > 0f)
+		{
 			velocity.y = Mathf.Sqrt(2f * height * -gravity);
+			animator.SetTrigger("Jump");
+		}
 	}
 
 	protected bool CheckAtWall(bool flip = false)
