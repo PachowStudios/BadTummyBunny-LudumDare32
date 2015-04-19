@@ -13,6 +13,8 @@ public sealed class PlayerControl : MonoBehaviour
 	public float fartMaxAvailableTime = 10f;
 	[Range(0f, 1f)]
 	public float fartRechargeRate = 0.5f;
+	[Range(0f, 1f)]
+	public float carrotRechargePercent = 0.25f;
 	public float fartMaxChargeTime = 3f;
 	public Vector2 fartDistanceRange;
 	public Vector2 fartSpeedRange;
@@ -122,6 +124,12 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		if (farted && initialFartTime - fartTime > 0.05f && CollisionLayers.ContainsLayer(other.gameObject))
 			StopFart(!IsGrounded);
+
+		if (other.tag == "Carrot")
+		{
+			other.GetComponent<Carrot>().Collect();
+			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotRechargePercent), fartMaxAvailableTime);
+		}
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
