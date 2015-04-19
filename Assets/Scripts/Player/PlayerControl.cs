@@ -42,6 +42,7 @@ public sealed class PlayerControl : MonoBehaviour
 	private Vector3 velocity;
 
 	private CharacterController2D controller;
+	private Animator animator;
 	#endregion
 
 	#region Public Properties
@@ -83,11 +84,13 @@ public sealed class PlayerControl : MonoBehaviour
 		instance = this;
 
 		controller = GetComponent<CharacterController2D>();
+		animator = GetComponent<Animator>();
 	}
 
 	private void Update()
 	{
 		GetInput();
+		ApplyAnimation();
 	}
 
 	private void LateUpdate()
@@ -130,6 +133,13 @@ public sealed class PlayerControl : MonoBehaviour
 		{
 			fartChargeTime = 0f;
 		}
+	}
+
+	private void ApplyAnimation()
+	{
+		animator.SetBool("Walking", horizontalMovement != 0f && !fart);
+		animator.SetBool("Grounded", IsGrounded);
+		animator.SetBool("Falling", velocity.y < 0f);
 	}
 
 	private void GetMovement()
@@ -188,6 +198,7 @@ public sealed class PlayerControl : MonoBehaviour
 		if (height > 0f)
 		{
 			velocity.y = Mathf.Sqrt(2f * height * -gravity);
+			animator.SetTrigger("Jump");
 		}
 	}
 
