@@ -23,8 +23,10 @@ public sealed class PlayerControl : MonoBehaviour
 	[SerializeField]
 	private ParticleSystem fartParticles;
 
+	private Vector3 velocity;
 	private float horizontalMovement = 0f;
 	private bool jump = false;
+	private bool enableInput = true;
 
 	private bool fart = false;
 	private bool farted = false;
@@ -39,8 +41,6 @@ public sealed class PlayerControl : MonoBehaviour
 	private float fartTime = 0f;
 	private Vector2 fartDirection = Vector2.zero;
 
-	private Vector3 velocity;
-
 	private CharacterController2D controller;
 	private Animator animator;
 	#endregion
@@ -49,11 +49,17 @@ public sealed class PlayerControl : MonoBehaviour
 	public static PlayerControl Instance
 	{ get { return instance; } }
 
-	public bool IsGrounded
-	{ get { return controller.isGrounded; } }
+	public bool Farting
+	{ get { return farted; } }
 
 	public Vector3 Velocity
 	{ get { return velocity; } }
+
+	public Vector2 Direction
+	{ get { return velocity.normalized; } }
+
+	public bool IsGrounded
+	{ get { return controller.isGrounded; } }
 	#endregion
 
 	#region Internal Properties
@@ -114,24 +120,27 @@ public sealed class PlayerControl : MonoBehaviour
 	#region Internal Update Methods
 	private void GetInput()
 	{
-		horizontalMovement = Input.GetAxis("Horizontal");
-		jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
+		if (enableInput)
+		{
+			horizontalMovement = Input.GetAxis("Horizontal");
+			jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
 
-		previousFartCharging = fartCharging;
-		fartCharging = Input.GetButton("Fart") && IsGrounded;
+			previousFartCharging = fartCharging;
+			fartCharging = Input.GetButton("Fart") && IsGrounded;
 
-		if (fartCharging)
-		{
-			fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
-		}
-		else if (previousFartCharging && IsGrounded)
-		{
-			Fart(fartChargeTime);
-			fartChargeTime = 0f;
-		}
-		else
-		{
-			fartChargeTime = 0f;
+			if (fartCharging)
+			{
+				fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
+			}
+			else if (previousFartCharging && IsGrounded)
+			{
+				Fart(fartChargeTime);
+				fartChargeTime = 0f;
+			}
+			else
+			{
+				fartChargeTime = 0f;
+			}
 		}
 	}
 
@@ -180,7 +189,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 			velocity.x = Mathf.Lerp(velocity.x,
 									horizontalMovement * walkSpeed,
-									Time.deltaTime * smoothedMovement);
+									smoothedMovement * Time.deltaTime);
 		}
 
 		velocity.y += gravity * Time.deltaTime;
@@ -222,6 +231,13 @@ public sealed class PlayerControl : MonoBehaviour
 		ResetOrientation();
 	}
 
+	private IEnumerator StartFartParticles()
+	{
+		yield return new WaitForFixedUpdate();
+
+		fartParticles.Play();
+	}
+
 	private void ResetOrientation()
 	{
 		float zRotation = body.rotation.eulerAngles.z;
@@ -230,11 +246,32 @@ public sealed class PlayerControl : MonoBehaviour
 		body.rotation = Quaternion.identity;
 	}
 
-	private IEnumerator StartFartParticles()
+	private void ResetInput()
 	{
-		yield return new WaitForFixedUpdate();
+		horizontalMovement = 0f;
+		jump = false;
+		StopFart();
+	}
+	#endregion
 
-		fartParticles.Play();
+	#region Public Methods
+	public IEnumerator ApplyKnockback(Vector2 knockback, float knockbackDirection)
+	{
+		yield return new WaitForSeconds(0.1f);
+
+		velocity.x = Mathf.Sqrt(Mathf.Abs(Mathf.Pow(knockback.x, 2) * -gravity)) * knockbackDirection;
+
+		if (IsGrounded)
+			velocity.y = Mathf.Sqrt(knockback.y * -gravity);
+
+		controller.move(velocity * Time.deltaTime);
+		velocity = controller.velocity;
+	}
+
+	public void DisableInput()
+	{
+		enableInput = false;
+		ResetInput();
 	}
 	#endregion
 }
