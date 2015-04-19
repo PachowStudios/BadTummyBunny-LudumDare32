@@ -30,11 +30,11 @@ public sealed class ScaleWidthCamera : MonoBehaviour
 
 	private void OnPreRender()
 	{
-		camera.orthographicSize = FOV / 20f / camera.aspect;
+		camera.orthographicSize = FOV / 32f / camera.aspect;
 
 		if (useWorldSpaceUI && worldSpaceUI != null)
 		{
-			worldSpaceUI.sizeDelta = new Vector2(FOV / 10f, FOV / 10f / camera.aspect);
+			worldSpaceUI.sizeDelta = new Vector2(FOV / 16f, FOV / 16f / camera.aspect);
 		}
 	}
 	#endregion

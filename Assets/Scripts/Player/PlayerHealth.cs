@@ -61,6 +61,7 @@ public sealed class PlayerHealth : MonoBehaviour
 		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
 		health = maxHealth;
+		lastHitTime = Time.time - invincibilityPeriod;
 	}
 
 	private void Update()
