@@ -14,7 +14,7 @@ public sealed class PlayerControl : MonoBehaviour
 	[Range(0f, 1f)]
 	public float fartRechargeRate = 0.5f;
 	[Range(0f, 1f)]
-	public float carrotRechargePercent = 0.25f;
+	public float carrotFartRechargePercent = 0.25f;
 	public float fartMaxChargeTime = 3f;
 	public Vector2 fartDistanceRange;
 	public Vector2 fartSpeedRange;
@@ -128,7 +128,8 @@ public sealed class PlayerControl : MonoBehaviour
 		if (other.tag == "Carrot")
 		{
 			other.GetComponent<Carrot>().Collect();
-			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotRechargePercent), fartMaxAvailableTime);
+			PlayerHealth.Instance.Health += (PlayerHealth.Instance.carrotHealthRechargePercent * PlayerHealth.Instance.maxHealth);
+			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotFartRechargePercent), fartMaxAvailableTime);
 		}
 	}
 
@@ -147,7 +148,7 @@ public sealed class PlayerControl : MonoBehaviour
 			jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
 
 			previousFartCharging = fartCharging;
-			fartCharging = Input.GetButton("Fart");
+			fartCharging = Input.GetButton("Fart") && !Farting;
 
 			if (fartCharging && fartAvailableTime > 0f)
 			{

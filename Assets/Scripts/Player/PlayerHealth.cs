@@ -8,6 +8,8 @@ public sealed class PlayerHealth : MonoBehaviour
 	private static PlayerHealth instance;
 
 	public float maxHealth = 100f;
+	[Range(0f, 1f)]
+	public float carrotHealthRechargePercent = 0.1f;
 	public float falloutDamage = 25f;
 	public float invincibilityPeriod = 2f;
 	public float damage = 10f;
