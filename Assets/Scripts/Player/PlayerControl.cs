@@ -24,6 +24,7 @@ public sealed class PlayerControl : MonoBehaviour
 	private ParticleSystem fartParticles;
 
 	private Vector3 velocity;
+	private Vector3 lastGroundedPosition;
 	private float horizontalMovement = 0f;
 	private bool jump = false;
 	private bool enableInput = true;
@@ -54,6 +55,9 @@ public sealed class PlayerControl : MonoBehaviour
 
 	public Vector3 Velocity
 	{ get { return velocity; } }
+
+	public Vector3 LastGroundedPosition
+	{ get { return lastGroundedPosition; } }
 
 	public Vector2 Direction
 	{ get { return velocity.normalized; } }
@@ -197,7 +201,10 @@ public sealed class PlayerControl : MonoBehaviour
 		velocity = controller.velocity;
 
 		if (IsGrounded)
+		{
 			velocity.y = 0f;
+			lastGroundedPosition = transform.position;
+		}
 	}
 	#endregion
 

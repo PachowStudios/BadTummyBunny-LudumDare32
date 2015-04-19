@@ -15,7 +15,7 @@ public abstract class Enemy : MonoBehaviour
 	public bool immuneToKnockback = false;
 
 	public Color flashColor = new Color(1f, 0.47f, 0.47f, 1f);
-	public float flashLength = 0.1f;
+	public float flashLength = 0.25f;
 
 	[SerializeField]
 	protected Transform frontCheck;
@@ -25,9 +25,11 @@ public abstract class Enemy : MonoBehaviour
 	protected float health;
 
 	protected Vector3 velocity;
+	protected Vector3 lastGroundedPosition;
 	protected float horizontalMovement = 0f;
 
 	protected CharacterController2D controller;
+	protected Animator animator;
 	protected SpriteRenderer spriteRenderer;
 	#endregion
 
@@ -56,14 +58,24 @@ public abstract class Enemy : MonoBehaviour
 	protected bool FacingRight
 	{ get { return transform.localScale.x > 0f; } }
 
-	private LayerMask CollisionLayers
+	protected LayerMask CollisionLayers
 	{ get { return controller.platformMask; } }
+
+	protected bool PlayerIsOnRight
+	{ get { return PlayerControl.Instance.transform.position.x > transform.position.x; } }
+
+	protected float RelativePlayerLastGrounded
+	{ get { return (lastGroundedPosition.y - PlayerControl.Instance.LastGroundedPosition.y).RoundToTenth(); } }
+
+	protected float RelativePlayerHeight
+	{ get { return transform.position.y - PlayerControl.Instance.transform.position.y; } }
 	#endregion
 
 	#region MonoBehaviour
 	protected virtual void Awake()
 	{
 		controller = GetComponent<CharacterController2D>();
+		animator = GetComponent<Animator>();
 		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 
 		health = maxHealth;
@@ -86,9 +98,15 @@ public abstract class Enemy : MonoBehaviour
 		if (Health > 0f && other.tag == "Player" && PlayerHealth.Instance.DamagesOnTouch)
 			TakeDamageFromPlayer();
 	}
+
+	protected virtual void OnTriggerStay2D(Collider2D other)
+	{
+		if (other.tag == "Killzone")
+			KillNoPoints();
+	}
 	#endregion
 
-	#region Abstract AI Methods
+	#region Abstract Internal AI Methods
 	protected abstract void CalculateAI();
 	protected abstract void ApplyAnimation();
 	#endregion
@@ -114,7 +132,10 @@ public abstract class Enemy : MonoBehaviour
 		velocity = controller.velocity;
 
 		if (IsGrounded)
+		{
 			velocity.y = 0f;
+			lastGroundedPosition = transform.position;
+		}
 	}
 	#endregion
 
@@ -131,7 +152,12 @@ public abstract class Enemy : MonoBehaviour
 		bool atWall = collision != null;
 
 		if (atWall && flip)
+		{
 			horizontalMovement *= -1f;
+
+			if (horizontalMovement == 0f)
+				horizontalMovement = 1f;
+		}
 
 		return atWall;
 	}
@@ -145,9 +171,33 @@ public abstract class Enemy : MonoBehaviour
 		bool atLedge = collision == null;
 
 		if (atLedge && flip)
+		{
 			horizontalMovement *= -1f;
 
+			if (horizontalMovement == 0f)
+				horizontalMovement = 1f;
+		}
+
 		return atLedge;
+	}
+
+	protected bool IsPlayerInRange(float min, float max)
+	{
+		int direction = FacingRight ? 1 : -1;
+		Vector3 startPoint = new Vector3(transform.position.x + (min * direction), collider2D.bounds.center.y, 0f);
+		Vector3 endPoint = startPoint + new Vector3((max - min) * direction, 0f, 0f);
+		RaycastHit2D linecast = Physics2D.Linecast(startPoint, endPoint, LayerMask.GetMask("Player"));
+
+		return linecast.collider != null;
+	}
+
+	protected bool IsPlayerVisible(float range = Mathf.Infinity)
+	{
+		RaycastHit2D linecast = Physics2D.Linecast(collider2D.bounds.center,
+												   PlayerControl.Instance.collider2D.bounds.center,
+												   CollisionLayers);
+
+		return linecast.collider == null && linecast.distance <= range;
 	}
 
 	protected void CheckDeath()

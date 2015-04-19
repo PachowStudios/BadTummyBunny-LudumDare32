@@ -78,18 +78,12 @@ public sealed class PlayerHealth : MonoBehaviour
 	private void OnTriggerEnter2D(Collider2D other)
 	{
 		if (other.tag == "Enemy")
-		{
 			if (!DamagesOnTouch)
 				TakeDamage(other.GetComponent<Enemy>());
-		}
 		else if (other.tag == "Killzone")
-		{
 			Respawn();
-		}
 		else if (other.tag == "Respawn")
-		{
 			SetRespawnPoint(other.GetComponent<RespawnPoint>());
-		}
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
@@ -190,7 +184,7 @@ public sealed class PlayerHealth : MonoBehaviour
 			Health -= damage;
 
 			if (!dead && knockback != default(Vector2))
-				PlayerControl.Instance.ApplyKnockback(knockback, knockbackDirection);
+				StartCoroutine(PlayerControl.Instance.ApplyKnockback(knockback, knockbackDirection));
 		}
 	}
 	#endregion
