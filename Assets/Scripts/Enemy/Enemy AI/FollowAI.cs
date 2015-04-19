@@ -42,7 +42,7 @@ public sealed class FollowAI : Enemy
 		moveSpeed = defaultMoveSpeed;
 
 		if (horizontalMovement == 0f)
-			horizontalMovement = 1f;
+			horizontalMovement = Extensions.RandomSign();
 
 		if (RelativePlayerLastGrounded != 0f)
 		{

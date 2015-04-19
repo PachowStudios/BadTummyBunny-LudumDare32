@@ -17,6 +17,8 @@ public abstract class Enemy : MonoBehaviour
 	public Color flashColor = new Color(1f, 0.47f, 0.47f, 1f);
 	public float flashLength = 0.25f;
 
+	public LayerMask blockVisibilityLayers;
+
 	[SerializeField]
 	protected Transform frontCheck;
 	[SerializeField]
@@ -156,7 +158,7 @@ public abstract class Enemy : MonoBehaviour
 			horizontalMovement *= -1f;
 
 			if (horizontalMovement == 0f)
-				horizontalMovement = 1f;
+				horizontalMovement = Extensions.RandomSign();
 		}
 
 		return atWall;
@@ -175,7 +177,7 @@ public abstract class Enemy : MonoBehaviour
 			horizontalMovement *= -1f;
 
 			if (horizontalMovement == 0f)
-				horizontalMovement = 1f;
+				horizontalMovement = Extensions.RandomSign();
 		}
 
 		return atLedge;
@@ -195,7 +197,7 @@ public abstract class Enemy : MonoBehaviour
 	{
 		RaycastHit2D linecast = Physics2D.Linecast(collider2D.bounds.center,
 												   PlayerControl.Instance.collider2D.bounds.center,
-												   CollisionLayers);
+												   blockVisibilityLayers);
 
 		return linecast.collider == null && linecast.distance <= range;
 	}
