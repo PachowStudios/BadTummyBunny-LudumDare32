@@ -112,7 +112,7 @@ public sealed class PlayerControl : MonoBehaviour
 	private void OnTriggerEnter2D(Collider2D other)
 	{
 		if (farted && initialFartTime - fartTime > 0.05f && CollisionLayers.ContainsLayer(other.gameObject))
-			StopFart(IsGrounded);
+			StopFart(!IsGrounded);
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
