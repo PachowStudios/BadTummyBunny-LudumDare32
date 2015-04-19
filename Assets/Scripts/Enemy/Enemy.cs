@@ -104,7 +104,7 @@ public abstract class Enemy : MonoBehaviour
 	protected virtual void OnTriggerStay2D(Collider2D other)
 	{
 		if (other.tag == "Killzone")
-			KillNoPoints();
+			Kill();
 	}
 	#endregion
 
@@ -206,9 +206,7 @@ public abstract class Enemy : MonoBehaviour
 	{
 		if (Health <= 0f)
 		{
-			//ExplodeEffect
-
-			Destroy(gameObject);
+			Kill();
 		}
 	}
 
@@ -221,9 +219,9 @@ public abstract class Enemy : MonoBehaviour
 	#endregion
 
 	#region Public Methods
-	public void KillNoPoints()
+	public void Kill()
 	{
-		//ExplodeEffect
+		ExplodeEffect.Instance.Explode(transform, velocity, spriteRenderer.sprite);
 		Destroy(gameObject);
 	}
 

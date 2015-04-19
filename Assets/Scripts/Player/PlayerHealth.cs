@@ -132,8 +132,8 @@ public sealed class PlayerHealth : MonoBehaviour
 			//GameOver();
 			SetRenderersEnabled(false);
 			collider2D.enabled = false;
+			ExplodeEffect.Instance.Explode(transform, PlayerControl.Instance.Velocity, spriteRenderer.sprite);
 			PlayerControl.Instance.DisableInput();
-			//ExplodeEffect
 		}
 	}
 

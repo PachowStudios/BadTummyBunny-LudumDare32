@@ -4,12 +4,13 @@ using System.Collections;
 public sealed class FollowAI : Enemy
 {
 	#region Fields
-	public float followSpeed = 7f;
+	public Vector2 followSpeedRange = new Vector2(2.5f, 3.5f);
 	public float followRange = 5f;
 	public float attackRange = 0.5f;
 	public float cooldownTime = 1f;
 
-	private float defaultMoveSpeed = 0f;
+	private float defaultMoveSpeed;
+	private float followSpeed;
 
 	private float cooldownTimer = 0f;
 	#endregion
@@ -20,6 +21,7 @@ public sealed class FollowAI : Enemy
 		base.Awake();
 
 		defaultMoveSpeed = moveSpeed;
+		followSpeed = followSpeedRange.RandomRange();
 	}
 	#endregion
 

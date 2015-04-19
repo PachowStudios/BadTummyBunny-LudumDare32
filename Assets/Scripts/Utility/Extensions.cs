@@ -15,6 +15,13 @@ public static class Extensions
 	}
 	#endregion
 
+	#region Vector2
+	public static float RandomRange(this Vector2 parent)
+	{
+		return Random.Range(parent.x, parent.y);
+	}
+	#endregion
+
 	#region Vector3
 	public static Quaternion LookAt2D(this Vector3 parent, Vector3 target)
 	{
