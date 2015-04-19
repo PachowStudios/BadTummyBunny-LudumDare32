@@ -7,6 +7,7 @@ public sealed class CameraFollow : MonoBehaviour
 	private static CameraFollow instance;
 
 	public float defaultYOffset = 10f;
+	public float minimumY = 0f;
 	public float smoothing = 1f;
 	public Transform followTarget;
 
@@ -64,6 +65,7 @@ public sealed class CameraFollow : MonoBehaviour
 				targetPosition.y = followTarget.position.y + currentYOffset;
 			}
 
+			targetPosition.y = Mathf.Max(targetPosition.y, minimumY + defaultYOffset);
 			transform.localPosition = Extensions.SuperSmoothLerp(transform.localPosition, previousTargetPosition, targetPosition, Time.deltaTime, smoothing);
 		}
 	}

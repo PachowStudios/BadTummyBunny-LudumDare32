@@ -2,7 +2,7 @@
 using System.Collections;
 
 [ExecuteInEditMode]
-public class ParticleSystemSorting : MonoBehaviour
+public sealed class ParticleSystemSorting : MonoBehaviour
 {
 	#region Fields
 	public ParticleSystem partSystem;

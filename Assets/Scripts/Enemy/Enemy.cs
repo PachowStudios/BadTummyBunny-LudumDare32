@@ -169,6 +169,12 @@ public abstract class Enemy : MonoBehaviour
 	#endregion
 
 	#region Public Methods
+	public void KillNoPoints()
+	{
+		//ExplodeEffect
+		Destroy(gameObject);
+	}
+
 	public void TakeDamageFromPlayer()
 	{
 		if (Health <= 0f)

@@ -10,6 +10,7 @@ public sealed class PlayerHealth : MonoBehaviour
 	public float invincibilityPeriod = 2f;
 	public Vector2 damageRange = new Vector2(5f, 25f);
 	public Vector2 knockbackRange = new Vector2(1f, 3f);
+	public float falloutDamage = 25f;
 
 	private float health;
 	private bool dead = false;
@@ -19,6 +20,8 @@ public sealed class PlayerHealth : MonoBehaviour
 	private float flashTimer = 0f;
 	private float flashTime = 0.25f;
 	private float smoothFlashTime;
+
+	private RespawnPoint respawnPoint;
 
 	private SpriteRenderer spriteRenderer;
 	#endregion
@@ -79,6 +82,14 @@ public sealed class PlayerHealth : MonoBehaviour
 			if (!DamagesOnTouch)
 				TakeDamage(other.GetComponent<Enemy>());
 		}
+		else if (other.tag == "Killzone")
+		{
+			Respawn();
+		}
+		else if (other.tag == "Respawn")
+		{
+			SetRespawnPoint(other.GetComponent<RespawnPoint>());
+		}
 	}
 
 	private void OnTriggerStay2D(Collider2D other)
@@ -124,6 +135,34 @@ public sealed class PlayerHealth : MonoBehaviour
 			PlayerControl.Instance.DisableInput();
 			//ExplodeEffect
 		}
+	}
+
+	private void Respawn()
+	{
+		if (dead)
+			return;
+
+		Health -= falloutDamage;
+
+		if (!dead)
+		{
+			if (respawnPoint == null)
+				transform.position = Vector3.zero;
+			else
+				transform.position = respawnPoint.Location;
+		}
+	}
+
+	private void SetRespawnPoint(RespawnPoint newRespawnPoint)
+	{
+		if (respawnPoint != null && respawnPoint == newRespawnPoint)
+			return;
+
+		if (respawnPoint != null)
+			respawnPoint.Deactivate();
+
+		newRespawnPoint.Activate();
+		respawnPoint = newRespawnPoint;
 	}
 
 	private void SetRenderersEnabled(bool enabled = true, bool alternate = false)
