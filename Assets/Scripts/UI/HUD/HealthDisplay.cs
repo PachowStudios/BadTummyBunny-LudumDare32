@@ -36,19 +36,18 @@ public class HealthDisplay : MonoBehaviour
 
 	private void Update()
 	{
-		healthPercent = Mathf.Clamp(PlayerHealth.Instance.Health / PlayerHealth.Instance.maxHealth, 0f, 1f);
-		//Fart Percent
+		healthPercent = PlayerHealth.Instance.HealthPercent;
+		fartPercent = PlayerControl.Instance.AvailableFartPercent;		
 
 		healthMask.rectTransform.sizeDelta = Vector2.SmoothDamp(healthMask.rectTransform.sizeDelta,
 																new Vector2(originalHealthWidth * healthPercent, healthMask.rectTransform.sizeDelta.y),
 																ref healthVelocity,
 																barDamping);
-		/*
-		fartMask.rectTransform.sizeDelta = Vector2.SmoothDamp(fartMask.rectTransform.sizeDelta, 
+
+		fartMask.rectTransform.sizeDelta = Vector2.SmoothDamp(fartMask.rectTransform.sizeDelta,
 															  new Vector2(originalFartWidth * fartPercent, fartMask.rectTransform.sizeDelta.y),
 															  ref fartVelocity,
 															  barDamping);
-		 */
 	}
 	#endregion
 }

@@ -10,6 +10,9 @@ public sealed class PlayerControl : MonoBehaviour
 	public float walkSpeed = 10f;
 	public float jumpHeight = 5f;
 
+	public float fartMaxAvailableTime = 10f;
+	[Range(0f, 1f)]
+	public float fartRechargeRate = 0.5f;
 	public float fartMaxChargeTime = 3f;
 	public Vector2 fartDistanceRange;
 	public Vector2 fartSpeedRange;
@@ -34,6 +37,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private bool fartCharging = false;
 	private bool previousFartCharging = false;
+	private float fartAvailableTime;
 	private float fartChargeTime = 0f;
 
 	private float fartDistance = 0f;
@@ -52,6 +56,9 @@ public sealed class PlayerControl : MonoBehaviour
 
 	public bool Farting
 	{ get { return farted; } }
+
+	public float AvailableFartPercent
+	{ get { return Mathf.Clamp(fartAvailableTime / fartMaxAvailableTime, 0f, 1f); } }
 
 	public Vector3 Velocity
 	{ get { return velocity; } }
@@ -95,6 +102,8 @@ public sealed class PlayerControl : MonoBehaviour
 
 		controller = GetComponent<CharacterController2D>();
 		animator = GetComponent<Animator>();
+
+		fartAvailableTime = fartMaxAvailableTime;
 	}
 
 	private void Update()
@@ -132,9 +141,12 @@ public sealed class PlayerControl : MonoBehaviour
 			previousFartCharging = fartCharging;
 			fartCharging = Input.GetButton("Fart");
 
-			if (fartCharging)
+			if (fartCharging && fartAvailableTime > 0f)
 			{
 				fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
+
+				if (fartChargeTime < fartMaxChargeTime)
+					fartAvailableTime = Mathf.Max(fartAvailableTime - Time.deltaTime, 0f);
 			}
 			else if (previousFartCharging)
 			{
@@ -144,6 +156,7 @@ public sealed class PlayerControl : MonoBehaviour
 			else
 			{
 				fartChargeTime = 0f;
+				fartAvailableTime = Mathf.Min(fartAvailableTime + (Time.deltaTime * fartRechargeRate), fartMaxAvailableTime);
 			}
 		}
 	}

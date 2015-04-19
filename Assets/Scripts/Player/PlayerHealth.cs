@@ -54,6 +54,9 @@ public sealed class PlayerHealth : MonoBehaviour
 		}
 	}
 
+	public float HealthPercent
+	{ get { return Mathf.Clamp(health / maxHealth, 0f, 1f); } }
+
 	public bool IsDead
 	{ get { return dead; } }
 
