@@ -64,6 +64,9 @@ public sealed class PlayerControl : MonoBehaviour
 
 	public bool IsGrounded
 	{ get { return controller.isGrounded; } }
+
+	public LayerMask CollisionLayers
+	{ get { return controller.platformMask; } }
 	#endregion
 
 	#region Internal Properties
@@ -75,9 +78,6 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private bool FacingRight
 	{ get { return body.localScale.x > 0f; } }
-
-	private LayerMask CollisionLayers
-	{ get { return controller.platformMask; } }
 
 	private Vector3 MouseDirection
 	{
@@ -130,13 +130,13 @@ public sealed class PlayerControl : MonoBehaviour
 			jump = jump || Input.GetButtonDown("Jump") && IsGrounded;
 
 			previousFartCharging = fartCharging;
-			fartCharging = Input.GetButton("Fart") && IsGrounded;
+			fartCharging = Input.GetButton("Fart");
 
 			if (fartCharging)
 			{
 				fartChargeTime = Mathf.Min(fartChargeTime + Time.deltaTime, fartMaxChargeTime);
 			}
-			else if (previousFartCharging && IsGrounded)
+			else if (previousFartCharging)
 			{
 				Fart(fartChargeTime);
 				fartChargeTime = 0f;

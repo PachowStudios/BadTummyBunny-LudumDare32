@@ -97,14 +97,13 @@ public abstract class Enemy : MonoBehaviour
 
 	protected virtual void OnTriggerEnter2D(Collider2D other)
 	{
-		if (Health > 0f && other.tag == "Player" && PlayerHealth.Instance.DamagesOnTouch)
-			TakeDamageFromPlayer();
+		if (other.tag == "Killzone")
+			Kill();
 	}
 
 	protected virtual void OnTriggerStay2D(Collider2D other)
 	{
-		if (other.tag == "Killzone")
-			Kill();
+		OnTriggerEnter2D(other);
 	}
 	#endregion
 
@@ -234,6 +233,8 @@ public abstract class Enemy : MonoBehaviour
 		Vector2 knockback = PlayerHealth.Instance.Knockback;
 		Vector2 knockbackDirection = PlayerControl.Instance.Direction;
 
+		knockbackDirection.Scale(new Vector2(-1f, 1f));
+
 		if (damage != 0f)
 		{
 			Health -= damage;
@@ -253,7 +254,10 @@ public abstract class Enemy : MonoBehaviour
 			return;
 
 		knockback.x += Mathf.Sqrt(Mathf.Abs(Mathf.Pow(knockback.x, 2) * -gravity));
-		knockback.y += Mathf.Sqrt(Mathf.Abs(knockback.y * -gravity));
+
+		if (IsGrounded)
+			knockback.y += Mathf.Sqrt(Mathf.Abs(knockback.y * -gravity));
+
 		knockback.Scale(knockbackDirection);
 
 		if (knockback.x != 0f || knockback.y != 0f)

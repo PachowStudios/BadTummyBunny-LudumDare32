@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public sealed class PlayerHealth : MonoBehaviour
 {
@@ -7,13 +8,22 @@ public sealed class PlayerHealth : MonoBehaviour
 	private static PlayerHealth instance;
 
 	public float maxHealth = 100f;
-	public float invincibilityPeriod = 2f;
-	public Vector2 damageRange = new Vector2(5f, 25f);
-	public Vector2 knockbackRange = new Vector2(1f, 3f);
 	public float falloutDamage = 25f;
+	public float invincibilityPeriod = 2f;
+	public float damage = 10f;
+	public float damageRate = 3f;
+	public Vector2 knockback = new Vector2(2f, 2f);
+
+	public float fartRange = 10f;
+	public Vector2 fartWidth = new Vector2(1f, 4f);
+	[SerializeField]
+	private Transform fartColliderTransform;
 
 	private float health;
 	private bool dead = false;
+
+	private float damageTime;
+	private float damageTimer;
 
 	private bool invincible = false;
 	private float lastHitTime;
@@ -24,6 +34,7 @@ public sealed class PlayerHealth : MonoBehaviour
 	private RespawnPoint respawnPoint;
 
 	private SpriteRenderer spriteRenderer;
+	private PolygonCollider2D fartCollider;
 	#endregion
 
 	#region Public Properties
@@ -47,13 +58,10 @@ public sealed class PlayerHealth : MonoBehaviour
 	{ get { return dead; } }
 
 	public float Damage
-	{ get { return damageRange.x; } }
+	{ get { return damage; } }
 
 	public Vector2 Knockback
-	{ get { return new Vector2(knockbackRange.y, knockbackRange.y); } }
-
-	public bool DamagesOnTouch
-	{ get { return PlayerControl.Instance.Farting; } }
+	{ get { return knockback; } }
 	#endregion
 
 	#region MonoBehaviour
@@ -62,8 +70,14 @@ public sealed class PlayerHealth : MonoBehaviour
 		instance = this;
 
 		spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+		fartCollider = fartColliderTransform.gameObject.AddComponent<PolygonCollider2D>();
+		fartCollider.isTrigger = true;
+		fartCollider.enabled = false;
+		SetFartCollider();
 
 		health = maxHealth;
+		damageTime = 1f / damageRate;
+		damageTimer = damageTime;
 		lastHitTime = Time.time - invincibilityPeriod;
 	}
 
@@ -72,6 +86,17 @@ public sealed class PlayerHealth : MonoBehaviour
 		if (!dead)
 		{
 			UpdateInvincibilityFlash();
+
+			if (PlayerControl.Instance.Farting)
+			{
+				damageTimer += Time.deltaTime;
+
+				if (damageTimer >= damageTime)
+				{
+					DamageTargets();
+					damageTimer = 0f;
+				}
+			}
 		}
 	}
 
@@ -79,8 +104,7 @@ public sealed class PlayerHealth : MonoBehaviour
 	{
 		if (other.tag == "Enemy")
 		{
-			if (!DamagesOnTouch)
-				TakeDamage(other.GetComponent<Enemy>());
+			TakeDamage(other.GetComponent<Enemy>());
 		}
 		else if (other.tag == "Killzone")
 		{
@@ -118,6 +142,31 @@ public sealed class PlayerHealth : MonoBehaviour
 		{
 			SetRenderersEnabled();
 			smoothFlashTime = flashTime;
+		}
+	}
+
+	// Ewwwwwww fuck it only 9 hours left
+	// I feel unclean for writing this
+	private void DamageTargets()
+	{
+		Vector3 origin = fartColliderTransform.position;
+
+		foreach (Enemy enemy in GameObject.FindObjectsOfType<Enemy>())
+		{
+			if (enemy.collider2D != null)
+			{
+				fartCollider.enabled = true;
+
+				if (fartCollider.OverlapPoint(enemy.collider2D.bounds.center))
+				{
+					RaycastHit2D linecast = Physics2D.Linecast(origin, enemy.collider2D.bounds.center, PlayerControl.Instance.CollisionLayers);
+					
+					if (linecast.collider == null)
+						enemy.TakeDamageFromPlayer();
+				}
+
+				fartCollider.enabled = false;
+			}
 		}
 	}
 	#endregion
@@ -172,6 +221,14 @@ public sealed class PlayerHealth : MonoBehaviour
 		else
 			spriteRenderer.enabled = enabled;
 	}
+
+	private void SetFartCollider()
+	{
+		fartCollider.SetPath(0, new Vector2[] { fartColliderTransform.TransformPointLocal(new Vector2(0.75f, fartWidth.x / 2f)),
+												fartColliderTransform.TransformPointLocal(new Vector2(0.75f, -(fartWidth.x / 2f))),
+												fartColliderTransform.TransformPointLocal(new Vector2(-fartRange, (-fartWidth.y / 2f))),
+												fartColliderTransform.TransformPointLocal(new Vector2(-fartRange, fartWidth.y / 2f)) });
+	}
 	#endregion
 
 	#region Public Methods
@@ -189,7 +246,7 @@ public sealed class PlayerHealth : MonoBehaviour
 		{
 			Health -= damage;
 
-			if (!dead && knockback != default(Vector2))
+			if (!dead && !PlayerControl.Instance.Farting && knockback != default(Vector2))
 				StartCoroutine(PlayerControl.Instance.ApplyKnockback(knockback, knockbackDirection));
 		}
 	}

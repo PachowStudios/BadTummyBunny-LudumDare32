@@ -58,7 +58,6 @@ public class CharacterController2D : MonoBehaviour
 	public event Action<Collider2D> onTriggerStayEvent;
 	public event Action<Collider2D> onTriggerExitEvent;
 
-
 	/// <summary>
 	/// toggles if the RigidBody2D methods should be used for movement or if Transform.Translate will be used. All the usual Unity rules for physics based movement apply when true
 	/// such as getting your input in Update and only calling move in FixedUpdate amonst others.

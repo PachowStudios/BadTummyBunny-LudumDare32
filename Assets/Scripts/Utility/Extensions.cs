@@ -50,6 +50,11 @@ public static class Extensions
 		parent.localScale = new Vector3(-parent.localScale.x, parent.localScale.y, parent.localScale.z);
 	}
 
+	public static Vector3 TransformPointLocal(this Transform parent, Vector3 target)
+	{
+		return parent.TransformPoint(target) - parent.position;
+	}
+
 	public static void CorrectScaleForRotation(this Transform parent, Vector3 target, bool correctY = false)
 	{
 		bool flipY = target.z > 90f && target.z < 270f;
