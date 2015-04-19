@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public sealed class PlayerControl : MonoBehaviour
 {
@@ -23,6 +24,19 @@ public sealed class PlayerControl : MonoBehaviour
 	public float groundDamping = 10f;
 	public float airDamping = 5f;
 	public float fartDamping = 10f;
+
+	[Range(0f, 1f)]
+	public float shortFartSoundPercentage = 0.25f;
+	[Range(0f, 1f)]
+	public float mediumFartSoundPercentage = 0.65f;
+
+	public List<AudioClip> fartSoundsShort;
+	public List<AudioClip> fartSoundsMedium;
+	public List<AudioClip> fartSoundsLong;
+
+	public List<AudioClip> carrotSounds;
+
+	public AudioSource walkingAudioSource;
 
 	[SerializeField]
 	private Transform body;
@@ -52,6 +66,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private CharacterController2D controller;
 	private Animator animator;
+	private AudioSource audioSource;
 	#endregion
 
 	#region Public Properties
@@ -106,6 +121,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 		controller = GetComponent<CharacterController2D>();
 		animator = GetComponent<Animator>();
+		audioSource = GetComponent<AudioSource>();
 
 		fartAvailableTime = fartMaxAvailableTime;
 	}
@@ -132,6 +148,7 @@ public sealed class PlayerControl : MonoBehaviour
 			other.GetComponent<Carrot>().Collect();
 			PlayerHealth.Instance.Health += (PlayerHealth.Instance.carrotHealthRechargePercent * PlayerHealth.Instance.maxHealth);
 			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotFartRechargePercent), fartMaxAvailableTime);
+			PlayCarrotSound();
 		}
 		else if (other.tag == "Flagpole")
 		{
@@ -139,6 +156,7 @@ public sealed class PlayerControl : MonoBehaviour
 
 			if (!flagpole.Activated)
 			{
+				PlayerHealth.Instance.PlayFlagSound();
 				flagpole.Activate();
 				DisableInput();
 				StartCoroutine(GameMenu.Instance.ShowGameOver(1.2f));
@@ -190,7 +208,8 @@ public sealed class PlayerControl : MonoBehaviour
 
 	private void ApplyAnimation()
 	{
-		animator.SetBool("Walking", horizontalMovement != 0f && !fart);
+		walkingAudioSource.mute = horizontalMovement == 0f || fart || !IsGrounded;
+		animator.SetBool("Walking",  horizontalMovement != 0f && !fart);
 		animator.SetBool("Grounded", IsGrounded);
 		animator.SetBool("Falling", velocity.y < 0f);
 	}
@@ -271,6 +290,8 @@ public sealed class PlayerControl : MonoBehaviour
 		StartCoroutine(StartFartParticles());
 		fart = farted = true;
 		canFart = false;
+
+		PlayFartSound(Mathf.Clamp(chargeTime / fartMaxChargeTime, 0f, 1f));
 	}
 
 	private void StopFart(bool killXVelocity = true)
@@ -280,6 +301,22 @@ public sealed class PlayerControl : MonoBehaviour
 		velocity.y = 0f;
 		fartParticles.Stop();
 		ResetOrientation();
+	}
+
+	private void PlayFartSound(float chargePercentage)
+	{
+		if (chargePercentage <= shortFartSoundPercentage && fartSoundsShort.Count > 0)
+			audioSource.PlayOneShot(fartSoundsShort[Random.Range(0, fartSoundsShort.Count)]);
+		else if (chargePercentage <= mediumFartSoundPercentage && fartSoundsMedium.Count > 0)
+			audioSource.PlayOneShot(fartSoundsMedium[Random.Range(0, fartSoundsMedium.Count)]);
+		else if (fartSoundsLong.Count > 0)
+			audioSource.PlayOneShot(fartSoundsLong[Random.Range(0, fartSoundsLong.Count)]);
+	}
+
+	private void PlayCarrotSound()
+	{
+		if (carrotSounds.Count > 0)
+			audioSource.PlayOneShot(carrotSounds[Random.Range(0, carrotSounds.Count)]);
 	}
 
 	private IEnumerator StartFartParticles()
