@@ -183,7 +183,7 @@ public sealed class PlayerHealth : MonoBehaviour
 		{
 			dead = true;
 
-			//GameOver();
+			GameMenu.Instance.ShowGameOver();
 			SetRenderersEnabled(false);
 			collider2D.enabled = false;
 			ExplodeEffect.Instance.Explode(transform, PlayerControl.Instance.Velocity, spriteRenderer.sprite);
