@@ -9,7 +9,11 @@ public class HealthDisplay : MonoBehaviour
 
 	public Mask healthMask;
 	public Mask fartMask;
+	public Text coins;
+
 	public float barDamping = 0.5f;
+	public float textDamping = 1f;
+	public int coinsDigits = 3;
 
 	private float healthPercent;
 	private float originalHealthWidth;
@@ -48,6 +52,8 @@ public class HealthDisplay : MonoBehaviour
 															  new Vector2(originalFartWidth * fartPercent, fartMask.rectTransform.sizeDelta.y),
 															  ref fartVelocity,
 															  barDamping);
+
+		coins.text = PlayerControl.Instance.Coins.ToString().PadLeft(coinsDigits, '0');
 	}
 	#endregion
 }

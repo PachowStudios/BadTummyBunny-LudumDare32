@@ -35,6 +35,7 @@ public sealed class PlayerControl : MonoBehaviour
 	public List<AudioClip> fartSoundsLong;
 
 	public List<AudioClip> carrotSounds;
+	public List<AudioClip> coinSounds;
 
 	public AudioSource walkingAudioSource;
 
@@ -63,6 +64,8 @@ public sealed class PlayerControl : MonoBehaviour
 	private float initialFartTime = 0f;
 	private float fartTime = 0f;
 	private Vector2 fartDirection = Vector2.zero;
+
+	private int coins = 0;
 
 	private CharacterController2D controller;
 	private Animator animator;
@@ -93,6 +96,9 @@ public sealed class PlayerControl : MonoBehaviour
 
 	public LayerMask CollisionLayers
 	{ get { return controller.platformMask; } }
+
+	public int Coins
+	{ get { return coins; } }
 	#endregion
 
 	#region Internal Properties
@@ -149,6 +155,12 @@ public sealed class PlayerControl : MonoBehaviour
 			PlayerHealth.Instance.Health += (PlayerHealth.Instance.carrotHealthRechargePercent * PlayerHealth.Instance.maxHealth);
 			fartAvailableTime = Mathf.Min(fartAvailableTime + (fartMaxAvailableTime * carrotFartRechargePercent), fartMaxAvailableTime);
 			PlayCarrotSound();
+		}
+		else if (other.tag == "Coin")
+		{
+			other.GetComponent<Coin>().Collect();
+			coins++;
+			PlayCoinSound();
 		}
 		else if (other.tag == "Flagpole")
 		{
@@ -317,6 +329,12 @@ public sealed class PlayerControl : MonoBehaviour
 	{
 		if (carrotSounds.Count > 0)
 			audioSource.PlayOneShot(carrotSounds[Random.Range(0, carrotSounds.Count)]);
+	}
+
+	private void PlayCoinSound()
+	{
+		if (coinSounds.Count > 0)
+			audioSource.PlayOneShot(coinSounds[Random.Range(0, coinSounds.Count)]);
 	}
 
 	private IEnumerator StartFartParticles()
