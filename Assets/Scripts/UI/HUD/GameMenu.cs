@@ -21,6 +21,12 @@ public class GameMenu : MonoBehaviour
 
 		canvasGroup = GetComponent<CanvasGroup>();
 	}
+
+	private void Update()
+	{
+		if (Input.GetButtonDown("Quit"))
+			Application.Quit();
+	}
 	#endregion
 
 	#region Public Methods
