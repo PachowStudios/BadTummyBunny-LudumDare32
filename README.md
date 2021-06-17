@@ -1,4 +1,3 @@
-# Bad Tummy Bunny
-A game I made for Ludum Dare 32.
+This repo is the exact state of the game when it was submitted to The Ludum Dare.
 
-I am currently continuing development on this but all further updates are closed source. This repo is the exact state of the game when it was submitted to The Ludum Dare.
+Development was continued [here](https://github.com/rshea0/BadTummyBunny) for a bit.
